@@ -3,6 +3,7 @@ package org.linyi.test.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.linyi.test.service.BlockchainService;
+import org.linyi.test.service.BlockchainService.AddRecordResult;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,7 +26,7 @@ public class BlockchainController {
     /**
      * 添加溯源记录
      * @param data 溯源数据
-     * @return 交易哈希和状态信息
+     * @return 交易哈希、记录ID和状态信息
      */
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> addRecord(@RequestParam String data) {
@@ -34,11 +35,12 @@ public class BlockchainController {
         try {
             log.info("接收到添加溯源记录请求: {}", data);
 
-            String transactionHash = blockchainService.addRecord(data);
+            AddRecordResult result = blockchainService.addRecord(data);
 
             response.put("success", true);
             response.put("message", "溯源记录添加成功");
-            response.put("transactionHash", transactionHash);
+            response.put("transactionHash", result.getTransactionHash());
+            response.put("recordId", result.getRecordId());
             response.put("data", data);
 
             return ResponseEntity.ok(response);

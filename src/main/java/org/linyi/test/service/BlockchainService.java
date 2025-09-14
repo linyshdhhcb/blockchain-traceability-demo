@@ -22,6 +22,9 @@ import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.protocol.core.methods.response.EthGetTransactionReceipt;
+import org.web3j.protocol.core.methods.response.Log;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -123,16 +126,74 @@ public class BlockchainService {
     /**
      * 添加溯源记录
      * @param data 溯源数据
-     * @return 交易哈希
+     * @return 包含交易哈希和记录ID的结果
      */
-    public String addRecord(String data) throws Exception {
+    public AddRecordResult addRecord(String data) throws Exception {
         log.info("添加溯源记录: {}", data);
 
         List<Type> inputParameters = Arrays.asList(new Utf8String(data));
         String transactionHash = sendContractTransaction("addRecord", inputParameters);
 
-        log.info("溯源记录添加成功，交易哈希: {}", transactionHash);
-        return transactionHash;
+        // 等待交易确认并获取记录ID
+        BigInteger recordId = getRecordIdFromTransaction(transactionHash);
+
+        log.info("溯源记录添加成功，交易哈希: {}, 记录ID: {}", transactionHash, recordId);
+        return new AddRecordResult(transactionHash, recordId);
+    }
+
+    /**
+     * 从交易收据中获取记录ID
+     */
+    private BigInteger getRecordIdFromTransaction(String transactionHash) throws Exception {
+        // 等待交易确认
+        for (int i = 0; i < 30; i++) { // 最多等待30秒
+            try {
+                EthGetTransactionReceipt receiptResponse = web3j.ethGetTransactionReceipt(transactionHash).send();
+                if (receiptResponse.getTransactionReceipt().isPresent()) {
+                    TransactionReceipt receipt = receiptResponse.getTransactionReceipt().get();
+
+                    // 解析事件日志获取记录ID
+                    for (Log eventLog : receipt.getLogs()) {
+                        if (eventLog.getAddress().equalsIgnoreCase(contractAddress)) {
+                            // RecordAdded事件的第一个topic是事件签名，第二个topic是记录ID
+                            if (eventLog.getTopics().size() >= 2) {
+                                String recordIdHex = eventLog.getTopics().get(1);
+                                return new BigInteger(recordIdHex.substring(2), 16);
+                            }
+                        }
+                    }
+                    break;
+                }
+            } catch (Exception e) {
+                log.debug("等待交易确认中... 尝试 {}/30", i + 1);
+            }
+            Thread.sleep(1000); // 等待1秒
+        }
+
+        // 如果无法从事件获取ID，则查询当前记录总数作为fallback
+        log.warn("无法从交易事件获取记录ID，使用当前记录总数作为ID");
+        return getRecordCount();
+    }
+
+    /**
+     * 添加记录的结果类
+     */
+    public static class AddRecordResult {
+        private final String transactionHash;
+        private final BigInteger recordId;
+
+        public AddRecordResult(String transactionHash, BigInteger recordId) {
+            this.transactionHash = transactionHash;
+            this.recordId = recordId;
+        }
+
+        public String getTransactionHash() {
+            return transactionHash;
+        }
+
+        public BigInteger getRecordId() {
+            return recordId;
+        }
     }
 
     /**
