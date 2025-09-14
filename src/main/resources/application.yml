@@ -1,0 +1,38 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: blockchain-traceability-demo
+
+# 区块链配置
+blockchain:
+  # Ganache RPC 地址 (默认端口7545)
+  rpc-url: http://127.0.0.1:7545
+
+  # 智能合约地址 (部署后需要填入)
+  contract-address: "0xeeF94Af98249d7aD4169af0b0Bd5297e7929bC3F"
+
+  # 私钥 (Ganache账户私钥，不要在生产环境中硬编码)
+  private-key: "0xd9ebef6c1d46bc5cb5c9f95d778fbc303f340319a1e470f447775563442b436c"
+
+# 日志配置
+logging:
+  level:
+    org.linyi.test: DEBUG
+    org.web3j: WARN
+    org.springframework: WARN
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
