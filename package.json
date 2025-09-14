@@ -1,0 +1,25 @@
+{
+  "name": "blockchain-traceability-demo",
+  "version": "1.0.0",
+  "description": "区块链溯源系统演示项目",
+  "scripts": {
+    "test-env": "node test-env.js",
+    "deploy": "cd deploy-contract && npm run deploy",
+    "debug": "cd deploy-contract && npm run debug",
+    "install-deps": "cd deploy-contract && npm install",
+    "start": "mvn spring-boot:run"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "blockchain",
+    "traceability",
+    "ethereum",
+    "web3",
+    "spring-boot"
+  ],
+  "author": "",
+  "license": "MIT"
+}

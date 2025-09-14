@@ -1,7 +1,12 @@
+// 加载环境变量
+require("dotenv").config({ path: "../.env" });
+
 const { Web3 } = require("web3");
 
 // 连接到Ganache
-const web3 = new Web3("http://127.0.0.1:7545");
+const web3 = new Web3(
+  process.env.BLOCKCHAIN_RPC_URL || "http://127.0.0.1:7545"
+);
 
 async function debugBlockchain() {
   try {
@@ -19,30 +24,37 @@ async function debugBlockchain() {
     });
 
     // 3. 检查私钥对应的账户
-    const privateKey =
-      "0xd9ebef6c1d46bc5cb5c9f95d778fbc303f340319a1e470f447775563442b436c";
-    try {
-      const account = web3.eth.accounts.privateKeyToAccount(privateKey);
-      console.log(`\n🔑 私钥对应账户: ${account.address}`);
+    const privateKey = process.env.BLOCKCHAIN_PRIVATE_KEY;
+    if (privateKey) {
+      try {
+        const account = web3.eth.accounts.privateKeyToAccount(privateKey);
+        console.log(`\n🔑 私钥对应账户: ${account.address}`);
 
-      // 检查账户是否在Ganache中
-      const isInGanache =
-        accounts.includes(account.address.toLowerCase()) ||
-        accounts.some(
-          (acc) => acc.toLowerCase() === account.address.toLowerCase()
-        );
-      console.log(`✅ 账户在Ganache中: ${isInGanache}`);
+        // 检查账户是否在Ganache中
+        const isInGanache =
+          accounts.includes(account.address.toLowerCase()) ||
+          accounts.some(
+            (acc) => acc.toLowerCase() === account.address.toLowerCase()
+          );
+        console.log(`✅ 账户在Ganache中: ${isInGanache}`);
 
-      if (isInGanache) {
-        const balance = await web3.eth.getBalance(account.address);
-        console.log(`💰 账户余额: ${web3.utils.fromWei(balance, "ether")} ETH`);
+        if (isInGanache) {
+          const balance = await web3.eth.getBalance(account.address);
+          console.log(
+            `💰 账户余额: ${web3.utils.fromWei(balance, "ether")} ETH`
+          );
+        }
+      } catch (error) {
+        console.log(`❌ 私钥格式错误: ${error.message}`);
       }
-    } catch (error) {
-      console.log(`❌ 私钥格式错误: ${error.message}`);
+    } else {
+      console.log(`⚠️  未配置私钥环境变量 BLOCKCHAIN_PRIVATE_KEY`);
     }
 
     // 4. 检查合约地址
-    const contractAddress = "0xeeF94Af98249d7aD4169af0b0Bd5297e7929bC3F";
+    const contractAddress =
+      process.env.BLOCKCHAIN_CONTRACT_ADDRESS ||
+      "0xeeF94Af98249d7aD4169af0b0Bd5297e7929bC3F";
     console.log(`\n📋 检查合约地址: ${contractAddress}`);
 
     const code = await web3.eth.getCode(contractAddress);

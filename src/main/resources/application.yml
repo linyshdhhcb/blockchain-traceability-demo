@@ -1,5 +1,5 @@
 server:
-  port: 8088
+  port: ${SERVER_PORT:8088}
 
 spring:
   application:
@@ -7,14 +7,14 @@ spring:
 
 # 区块链配置
 blockchain:
-  # Ganache RPC 地址 (默认端口7545)
-  rpc-url: http://127.0.0.1:7545
+  # Ganache RPC 地址 (从环境变量读取，默认端口7545)
+  rpc-url: ${BLOCKCHAIN_RPC_URL:http://127.0.0.1:7545}
 
-  # 智能合约地址 (部署后需要填入)
-  contract-address: "0xeeF94Af98249d7aD4169af0b0Bd5297e7929bC3F"
+  # 智能合约地址 (从环境变量读取，部署后需要填入)
+  contract-address: ${BLOCKCHAIN_CONTRACT_ADDRESS:''}
 
-  # 私钥 (Ganache账户私钥，不要在生产环境中硬编码)
-  private-key: "0xd9ebef6c1d46bc5cb5c9f95d778fbc303f340319a1e470f447775563442b436c"
+  # 私钥 (从环境变量读取，不要在生产环境中硬编码)
+  private-key: ${BLOCKCHAIN_PRIVATE_KEY:''}
 
 # 日志配置
 logging:

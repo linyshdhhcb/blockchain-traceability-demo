@@ -2,13 +2,16 @@
  * 智能合约部署脚本 (Node.js + Web3.js)
  *
  * 使用方法:
- * 1. 安装依赖: npm install web3 solc
- * 2. 配置私钥: 编辑下面的 PRIVATE_KEY
+ * 1. 安装依赖: npm install web3 solc dotenv
+ * 2. 配置环境变量: 复制 .env.example 为 .env 并填入实际值
  * 3. 启动Ganache: 确保运行在 http://127.0.0.1:7545
  * 4. 运行脚本: node deploy-contract.js
  *
  * 注意: 这是一个完整的部署脚本，包含合约编译和部署功能
  */
+
+// 加载环境变量
+require("dotenv").config({ path: "../.env" });
 
 const { Web3 } = require("web3");
 const fs = require("fs");
@@ -16,11 +19,10 @@ const path = require("path");
 const solc = require("solc");
 
 // ==================== 配置区域 ====================
-const RPC_URL = "http://127.0.0.1:7545"; // Ganache RPC地址
-const PRIVATE_KEY =
-  "0xd9ebef6c1d46bc5cb5c9f95d778fbc303f340319a1e470f447775563442b436c"; // 🔴 替换为你的Ganache私钥
-const GAS_PRICE = "20000000000"; // 20 Gwei
-const GAS_LIMIT = "6721975"; // Gas限制
+const RPC_URL = process.env.BLOCKCHAIN_RPC_URL || "http://127.0.0.1:7545"; // Ganache RPC地址
+const PRIVATE_KEY = process.env.BLOCKCHAIN_PRIVATE_KEY; // 从环境变量读取私钥
+const GAS_PRICE = process.env.BLOCKCHAIN_GAS_PRICE || "20000000000"; // 20 Gwei
+const GAS_LIMIT = process.env.BLOCKCHAIN_GAS_LIMIT || "6721975"; // Gas限制
 
 // ==================== 合约编译函数 ====================
 function compileContract() {
@@ -90,13 +92,16 @@ async function deployContract() {
     console.log("=".repeat(50));
 
     // 1. 检查私钥配置
-    if (PRIVATE_KEY === "0x你的私钥") {
+    if (!PRIVATE_KEY || PRIVATE_KEY === "0x你的私钥") {
       console.error("❌ 请先配置私钥！");
       console.log("📝 配置步骤：");
       console.log("   1. 打开 Ganache");
       console.log("   2. 点击账户旁边的钥匙图标");
       console.log("   3. 复制私钥");
-      console.log("   4. 替换脚本中的 PRIVATE_KEY 变量");
+      console.log(
+        "   4. 在项目根目录的 .env 文件中设置 BLOCKCHAIN_PRIVATE_KEY"
+      );
+      console.log("   5. 如果没有 .env 文件，请复制 .env.example 为 .env");
       return;
     }
 
